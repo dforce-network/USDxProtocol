@@ -1,0 +1,21 @@
+{
+  "name": "dforce",
+  "version": "0.0.1",
+  "author": "dForce Team",
+  "scripts": {
+    "build": "truffle compile --compile-all",
+    "test": "node scripts/run-tests.js",
+    "kovan": "truffle migrate --network kovan",
+    "Re-kovan": "truffle migrate --reset --network kovan",
+    "rinkeby": "truffle migrate --network rinkeby",
+    "Re-rinkeby": "truffle migrate --reset --network rinkeby"
+  },
+  "dependencies": {
+    "bn.js": "^4.11.8",
+    "python3": "0.0.1",
+    "web3": "^1.0.0-beta.54"
+  },
+  "devDependencies": {
+    "truffle-hdwallet-provider": "^1.0.2"
+  }
+}
