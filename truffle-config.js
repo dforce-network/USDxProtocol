@@ -22,8 +22,12 @@
  *
  */
 
+require('dotenv').config();
+
 const HDWalletProvider = require('truffle-hdwallet-provider');
-const infuraKey = "e34a8cd99410472aa551cf2acf7a8249";
+var infuraKey = process.env.INFURA_APIKEY;
+var mnemonic = process.env.MNEMONIC;
+
 //
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
@@ -89,7 +93,7 @@ module.exports = {
     // },
 
     kovan: {
-      provider: () => new HDWalletProvider("change to your wallet seed", `https://kovan.infura.io/v3/${infuraKey}`),
+      provider: () => new HDWalletProvider(mnemonic, `https://kovan.infura.io/v3/${infuraKey}`),
       network_id: 42, // Kovan's id
       gas: 6600000,
       confirmations: 1,
@@ -98,7 +102,7 @@ module.exports = {
     },
 
     ropsten: {
-      provider: () => new HDWalletProvider("change to your wallet seed", `https://ropsten.infura.io/v3/${infuraKey}`),
+      provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/${infuraKey}`),
       network_id: 3, // ropsten's id
       gas: 6600000,
       confirmations: 2,
@@ -107,7 +111,7 @@ module.exports = {
     },
 
     rinkeby: {
-      provider: () => new HDWalletProvider("change to your wallet seed", `https://rinkeby.infura.io/v3/${infuraKey}`),
+      provider: () => new HDWalletProvider(mnemonic, `https://rinkeby.infura.io/v3/${infuraKey}`),
       network_id: 4, // ropsten's id
       gas: 6600000,
       confirmations: 1,

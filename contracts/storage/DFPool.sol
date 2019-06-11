@@ -40,4 +40,14 @@ contract DFPool is DSAuth, Utils {
         assert(IERC20Token(_tokenID).transfer(dfcol, _amount));
         return true;
     }
+
+    function transferFromSenderToCol(address _tokenID, address _from, uint _amount)
+        public
+        auth
+        returns (bool)
+    {
+        require(dfcol != address(0), "TransferFromSenderToCol: collateral address empty.");
+        assert(IERC20Token(_tokenID).transferFrom(_from, dfcol, _amount));
+        return true;
+    }
 }

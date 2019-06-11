@@ -184,7 +184,7 @@ contract DFStore is DSMath, DSAuth {
             require(_colIDs[i] != address(0), "SetBackupSection: token contract address invalid");
             require(_weight[i] > 0, "SetBackupSection: weight must greater than 0");
 
-            secListBackup[_backupIdx].cw[i] = mul(_weight[i], (10 ** 18));
+            secListBackup[_backupIdx].cw[i] = _weight[i];
             secListBackup[_backupIdx].colIDs[i] = _colIDs[i];
             mintedTokens[_colIDs[i]] = true;
         }

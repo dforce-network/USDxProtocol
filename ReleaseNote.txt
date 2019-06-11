@@ -1,5 +1,16 @@
 USDx Release Notes.
 
+# 2019.06.11
+Second version for audit.
+1. fix weight precision in setBackupSection (DFStore.sol, line 187).
+2. fix "require(_remain > 0)" bug in claimAmount.(DFEngine.sol,line 183).
+3. add "oneClickMinting" method(DFEngine.sol,line 432~457; DFProtocol, line 72~75; DFPool.sol, line 44-52).
+4. fix "withdraw fee" issue in withdraw function(DFEngine.sol,line 157).
+5. replace +/- with safe math in serval places(DFEngine.sol).
+6. fix issue in getCollaterMaxClaim and getWithdrawBalances, use minted token list instead of current token list(DFEngine.sol, line 371,398).
+7. use .env to deploy testnet. (audit free)
+8. serval improvements, including "add missing view modifier to get function", "better variable naming", etc.
+
 # 2019.06.02
 First version for audit.
 1. release all functions for the first time;

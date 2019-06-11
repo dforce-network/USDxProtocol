@@ -154,7 +154,7 @@ contract DFEngine is DSMath, DSAuth {
         _depositorBalance = sub(_depositorBalance, _withdrawAmount);
         dfStore.setDepositorBalance(_depositor, _tokenID, _depositorBalance);
         dfStore.setTokenBalance(_tokenID, sub(_tokenBalance, _withdrawAmount));
-        _unifiedCommission(ProcessType.CT_WITHDRAW, _feeTokenIdx, _depositor, _amount);
+        _unifiedCommission(ProcessType.CT_WITHDRAW, _feeTokenIdx, _depositor, _withdrawAmount);
         dfPool.transferOut(_tokenID, _depositor, _withdrawAmount);
 
         return (_withdrawAmount);
@@ -175,12 +175,12 @@ contract DFEngine is DSMath, DSAuth {
             _remain = sub(_remain, _depositorMintAmount);
 
             if (_depositorMintAmount > 0){
-                dfStore.setResUSDXBalance(_tokens[i], _resUSDXBalance - _depositorMintAmount);
-                dfStore.setDepositorBalance(_depositor, _tokens[i], _depositorBalance - _depositorMintAmount);
+                dfStore.setResUSDXBalance(_tokens[i], sub(_resUSDXBalance, _depositorMintAmount));
+                dfStore.setDepositorBalance(_depositor, _tokens[i], sub(_depositorBalance, _depositorMintAmount));
             }
         }
 
-        require(_remain > 0, "Claim: balance not enough.");
+        require(_remain == 0, "Claim: balance not enough.");
         _unifiedCommission(ProcessType.CT_CLAIM, _feeTokenIdx, _depositor, _amount);
         dfPool.transferOut(address(usdxToken), _depositor, _amount);
         return _amount;
@@ -201,8 +201,8 @@ contract DFEngine is DSMath, DSAuth {
             _mintAmount = add(_mintAmount, _depositorMintAmount);
 
             if (_depositorMintAmount > 0){
-                dfStore.setResUSDXBalance(_tokens[i], _resUSDXBalance - _depositorMintAmount);
-                dfStore.setDepositorBalance(_depositor, _tokens[i], _depositorBalance - _depositorMintAmount);
+                dfStore.setResUSDXBalance(_tokens[i], sub(_resUSDXBalance, _depositorMintAmount));
+                dfStore.setDepositorBalance(_depositor, _tokens[i], sub(_depositorBalance, _depositorMintAmount));
             }
         }
 
@@ -239,7 +239,7 @@ contract DFEngine is DSMath, DSAuth {
                 _sumBurnCW = add(_sumBurnCW, _burnCW[i]);
             }
 
-            if (_burned + _amountTemp <= _minted){
+            if (add(_burned, _amountTemp) <= _minted){
                 dfStore.setSectionBurned(add(_burned, _amountTemp));
                 _burnedAmount = _amountTemp;
                 _amountTemp = 0;
@@ -282,7 +282,7 @@ contract DFEngine is DSMath, DSAuth {
         for (uint i = 0; i < _tokens.length; i++) {
             _mintAmount = mul(_step, _mintCW[i]);
             _depositorMintAmount = min(_depositorBalance[i], add(_resUSDXBalance[i], _mintAmount));
-            dfStore.setTokenBalance(_tokens[i], _tokenBalance[i] - _mintAmount);
+            dfStore.setTokenBalance(_tokens[i], sub(_tokenBalance[i], _mintAmount));
             dfPool.transferToCol(_tokens[i], _mintAmount);
             _mintTotal = add(_mintTotal, _mintAmount);
 
@@ -291,8 +291,8 @@ contract DFEngine is DSMath, DSAuth {
                 continue;
             }
 
-            dfStore.setDepositorBalance(_depositor, _tokens[i], _depositorBalance[i] - _depositorMintAmount);
-            dfStore.setResUSDXBalance(_tokens[i], add(_resUSDXBalance[i], _mintAmount) - _depositorMintAmount);
+            dfStore.setDepositorBalance(_depositor, _tokens[i], sub(_depositorBalance[i], _depositorMintAmount));
+            dfStore.setResUSDXBalance(_tokens[i], sub(add(_resUSDXBalance[i], _mintAmount), _depositorMintAmount));
             _depositorMintTotal = add(_depositorMintTotal, _depositorMintAmount);
         }
 
@@ -368,9 +368,7 @@ contract DFEngine is DSMath, DSAuth {
     }
 
     function getCollateralMaxClaim() public view returns (address[] memory, uint[] memory) {
-        uint position = dfStore.getMintPosition();
-
-        address[] memory _tokens = dfStore.getSectionToken(position);
+        address[] memory _tokens = dfStore.getMintedTokenList();
         uint[] memory _balance = new uint[](_tokens.length);
 
         for (uint i = 0; i < _tokens.length; i++) {
@@ -397,8 +395,7 @@ contract DFEngine is DSMath, DSAuth {
     }
 
     function getWithdrawBalances(address _depositor) public view returns(address[] memory, uint[] memory) {
-        uint position = dfStore.getMintPosition();
-        address[] memory tokens = dfStore.getSectionToken(position);
+        address[] memory tokens = dfStore.getMintedTokenList();
         uint[] memory weight = new uint[](tokens.length);
 
         for (uint i = 0; i < tokens.length; i++) {
@@ -408,16 +405,16 @@ contract DFEngine is DSMath, DSAuth {
         return (tokens, weight);
     }
 
-    function getPrices(uint typeID) public view returns (uint) {
-        address _token = dfStore.getTypeToken(typeID);
+    function getPrices(uint _tokenIdx) public view returns (uint) {
+        address _token = dfStore.getTypeToken(_tokenIdx);
         require(_token != address(0), "_UnifiedCommission: fee token not correct.");
         uint dfPrice = getPrice(dfStore.getTokenMedian(_token));
 
         return dfPrice;
     }
 
-    function getFeeRateByID(uint typeID) public view returns (uint) {
-        return dfStore.getFeeRate(typeID);
+    function getFeeRateByID(uint _processIdx) public view returns (uint) {
+        return dfStore.getFeeRate(_processIdx);
     }
 
     function getDestroyThreshold() public view returns (uint) {
@@ -430,5 +427,32 @@ contract DFEngine is DSMath, DSAuth {
         uint _withdrawAmount = min(_tokenBalance, _depositorBalance);
 
         return _withdrawAmount;
+    }
+
+    function oneClickMinting(address _depositor, uint _feeTokenIdx, uint _amount) public auth {
+        address[] memory _tokens;
+        uint[] memory _mintCW;
+        uint _sumMintCW;
+
+        (_tokens, _mintCW) = getMintingSection();
+        for (uint i = 0; i < _mintCW.length; i++) {
+            _sumMintCW = add(_sumMintCW, _mintCW[i]);
+        }
+        require(_amount % _sumMintCW == 0, "OneClickMinting: amount error");
+
+        _unifiedCommission(ProcessType.CT_DEPOSIT, _feeTokenIdx, _depositor, _amount);
+
+        for (uint i = 0; i < _mintCW.length; i++) {
+            require(dfPool.transferFromSenderToCol(_tokens[i], _depositor, div(mul(_amount, _mintCW[i]), _sumMintCW)),
+                    "ERC20 TransferFrom: not enough amount");
+        }
+
+        dfStore.addTotalMinted(_amount);
+        dfStore.addSectionMinted(_amount);
+        // usdxToken.mint(_depositor, _amount);
+
+        usdxToken.mint(address(dfPool), _amount);
+        checkUSDXTotalAndColTotal();
+        dfPool.transferOut(address(usdxToken), _depositor, _amount);
     }
 }
