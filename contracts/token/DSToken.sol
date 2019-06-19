@@ -13,6 +13,8 @@
 
 pragma solidity ^0.5.2;
 
+import "../utility/DSMath.sol";
+
 contract DSAuthEvents {
     event LogSetAuthority (address indexed authority);
     event LogSetOwner     (address indexed owner);
@@ -72,18 +74,6 @@ contract DSAuth is DSAuthEvents {
     }
 }
 
-contract DSMath {
-    function add(uint x, uint y) internal pure returns (uint z) {
-        require((z = x + y) >= x, "ds-math-add-overflow");
-    }
-    function sub(uint x, uint y) internal pure returns (uint z) {
-        require((z = x - y) <= x, "ds-math-sub-underflow");
-    }
-    function mul(uint x, uint y) internal pure returns (uint z) {
-        require(y == 0 || (z = x * y) / y == x, "ds-math-mul-overflow");
-    }
-}
-
 contract DSNote {
     event LogNote(
         bytes4   indexed  sig,
@@ -111,7 +101,7 @@ contract DSNote {
     }
 }
 
-contract DSStop is DSNote, DSAuth {
+contract DSStop is DSNote, DSAuth, DSMath {
     bool public stopped;
 
     modifier stoppable {
@@ -197,12 +187,9 @@ contract DSToken is DSTokenBase(0), DSStop {
     bytes32  public  symbol;
     uint256  public  decimals = 18;
 
-    // constructor(bytes32 symbol_) public {
-    //     symbol = symbol_;
-    // }
-
-    event Mint(address indexed guy, uint wad);
-    event Burn(address indexed guy, uint wad);
+    constructor(bytes32 symbol_) public {
+        symbol = symbol_;
+    }
 
     function setName(bytes32 name_) public onlyOwner {
         name = name_;
@@ -245,20 +232,24 @@ contract DSToken is DSTokenBase(0), DSStop {
     }
 
     function _mint(address guy, uint wad) internal {
+        require(guy != address(0), "ds-token-mint: mint to the zero address");
+
         _balances[guy] = add(_balances[guy], wad);
         _supply = add(_supply, wad);
-        emit Mint(guy, wad);
+        emit Transfer(address(0), guy, wad);
     }
 
     function _burn(address guy, uint wad) internal {
+        require(guy != address(0), "ds-token-burn: burn from the zero address");
+        require(_balances[guy] >= wad, "ds-token-insufficient-balance");
+
         if (guy != msg.sender && _approvals[guy][msg.sender] != uint(-1)) {
             require(_approvals[guy][msg.sender] >= wad, "ds-token-insufficient-approval");
             _approvals[guy][msg.sender] = sub(_approvals[guy][msg.sender], wad);
         }
 
-        require(_balances[guy] >= wad, "ds-token-insufficient-balance");
         _balances[guy] = sub(_balances[guy], wad);
         _supply = sub(_supply, wad);
-        emit Burn(guy, wad);
+        emit Transfer(guy, address(0), wad);
     }
 }

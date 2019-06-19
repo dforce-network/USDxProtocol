@@ -21,7 +21,7 @@ contract IDFStore {
     function getBackupSectionIndex(uint _position) public view returns (uint);
     function setBackupSectionIndex(uint _position, uint _backupIdx) public;
 
-    function setSection(address[] memory _tokens, uint[] memory _weight) public;
+    function setSection(address[] memory _wrappedTokens, uint[] memory _weight) public;
     function setBackupSection(uint _position, address[] memory _tokens, uint[] memory _weight) public;
     function burnSectionMoveon() public;
 
@@ -58,4 +58,10 @@ contract IDFStore {
     function setTypeToken(uint tt, address _tokenID) public;
     function getTokenMedian(address _tokenID) public view returns (address);
     function setTokenMedian(address _tokenID, address _median) public;
+
+    function setTotalCol(uint _amount) public;
+    function getTotalCol() public view returns (uint);
+
+    function setWrappedToken(address _srcToken, address _wrappedToken) public;
+    function getWrappedToken(address _srcToken) public view returns (address);
 }

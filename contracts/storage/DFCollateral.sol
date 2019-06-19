@@ -16,4 +16,8 @@ contract DFCollateral is DSAuth, Utils {
         assert(IERC20Token(_tokenID).transfer(_to, _amount));
         return true;
     }
+
+    function approveToEngine(address _tokenIdx, address _engineAddress) public auth {
+        IERC20Token(_tokenIdx).approve(_engineAddress, uint(-1));
+    }
 }

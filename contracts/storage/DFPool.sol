@@ -50,4 +50,8 @@ contract DFPool is DSAuth, Utils {
         assert(IERC20Token(_tokenID).transferFrom(_from, dfcol, _amount));
         return true;
     }
+
+    function approveToEngine(address _tokenIdx, address _engineAddress) public auth {
+        IERC20Token(_tokenIdx).approve(_engineAddress, uint(-1));
+    }
 }

@@ -1,5 +1,20 @@
 USDx Release Notes.
 
+# 2019.06.19
+1). Split DFProtocol.sol and DFEngine.sol, add DFProtocolView.sol and DFSetting.sol for the deploying gas sake;
+2). To solve the problem of decimal of collateral tokens, add wrapper token, i.e. x-tokens (e.g. DAI -> xDAI ) for each token. Uses wrappedTokens (DSWrappedToken.sol) instead of collateral tokens in ‘section’. Do wrapping when deposit collateral tokens, and do unwrapping when destroy USDx. Colllateral tokens lock in contract DFPool, and x-tokens store in contract DFPool(pending minting) and DFCollateral(minted);
+3). DSMath.sol: add pow();
+4). DFEngine.sol: remove claimAmount function (deprecated);
+5). DFEngine.sol(line 173): Fix minimal destroy amount checking;
+6). DFEngine.sol(line 218): Burn user’s USDx directly, do not transfer to contract in the first place;
+7). DFEngine.sol(line 225): Add oneClickMinting function.
+8). DFCollateral.sol, DFPool.sol: Add approveToEngine function to approve wrapped token to contract DFEngine;
+9). DFStore.sol(line 20): Add wrappedTokens to record relationship between collateral tokens and wrapper tokens.
+A). DFStore.sol, line 145:163: Better arguments checking in _setSection().
+B). DSToken.sol: merge contract DFToken and USDx to DSToken.
+C). DFEngine.sol, DFStore.sol: fix checkUSDXTotalAndColTotal to avoid Dos attack (proposed by PeckShield).
+D). DFUpgrader.sol, line 30: add auth to requestImplChange to avoid race condition attack (proposed by PeckShield).
+
 # 2019.06.11
 Second version for audit.
 1. fix weight precision in setBackupSection (DFStore.sol, line 187).

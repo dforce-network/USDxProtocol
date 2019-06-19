@@ -27,7 +27,7 @@ contract DFUpgrader is DSAuth {
       *
       * @param  _newDFEngine  The address of the new active implementation.
       */
-    function requestImplChange(address _newDFEngine) public {
+    function requestImplChange(address _newDFEngine) public onlyOwner {
         require(_newDFEngine != address(0), "_newDFEngine: The address is empty");
 
         newDFEngine = _newDFEngine;

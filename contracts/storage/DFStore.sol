@@ -2,6 +2,7 @@ pragma solidity ^0.5.2;
 
 import '../utility/DSAuth.sol';
 import '../utility/DSMath.sol';
+import '../token/interfaces/IDSWrappedToken.sol';
 
 contract DFStore is DSMath, DSAuth {
     // MEMBERS
@@ -15,6 +16,8 @@ contract DFStore is DSMath, DSAuth {
     }
 
     Section[] public secList;
+
+    mapping(address => address) public wrappedTokens;
 
     uint backupSeed = 1;
     mapping(uint => Section) public secListBackup;
@@ -38,7 +41,10 @@ contract DFStore is DSMath, DSAuth {
     uint private totalBurned;
 
     /// @dev  The minimal amount of burned.
-    uint private minimalBurnAmount = 10 ** 9;
+    uint private minimalBurnAmount = 10 ** 14;
+
+    /// @dev The total amount of collateral.
+    uint private totalCol;
 
     mapping(uint => uint) public FeeRate;
     mapping(uint => address) public FeeToken;
@@ -47,11 +53,10 @@ contract DFStore is DSMath, DSAuth {
     mapping(address => uint) public resUSDXBalance;
     mapping(address => mapping (address => uint)) public depositorsBalance;
 
-    event UpdateSection(address[] _colIDs, uint[] _number);
+    event UpdateSection(address[] _wrappedTokens, uint[] _number);
 
-    constructor(address[] memory _colIDs, uint[] memory _weights) public {
-        _setSection(_colIDs, _weights);
-        _setMinBurnAmount(minimalBurnAmount);
+    constructor(address[] memory _wrappedTokens, uint[] memory _weights) public {
+        _setSection(_wrappedTokens, _weights);
     }
 
     function getSectionMinted(uint _position) public view returns (uint) {
@@ -130,10 +135,22 @@ contract DFStore is DSMath, DSAuth {
         secList[_position].backupIdx = _backupIdx;
     }
 
-    function _setSection(address[] memory _colIDs, uint[] memory _weight) internal {
-        require(_colIDs.length == _weight.length, "_SetSection: data not allow.");
+    function _setSection(address[] memory _wrappedTokens, uint[] memory _weight) internal {
+        require(_wrappedTokens.length == _weight.length, "_SetSection: data not allow.");
 
-        secList.push(Section(0, 0, 0, new address[](_colIDs.length), new uint[](_weight.length)));
+        uint sum;
+        uint factor = 10 ** 10;
+        address[] memory _srcTokens = new address[](_weight.length);
+
+        for (uint i = 0; i < _wrappedTokens.length; i++) {
+            require(_weight[i] != 0, "_SetSection: invalid weight");
+            require(_wrappedTokens[i] != address(0), "_SetSection: 0 address not allow.");
+            _srcTokens[i] = IDSWrappedToken(_wrappedTokens[i]).getSrcERC20();
+            require(_srcTokens[i] != address(0), "_SetSection: invalid address");
+            sum = add(sum, _weight[i]);
+        }
+
+        secList.push(Section(0, 0, 0, new address[](_wrappedTokens.length), new uint[](_weight.length)));
         uint _mintPosition = secList.length - 1;
 
         if (_mintPosition > 0) {
@@ -142,31 +159,31 @@ contract DFStore is DSMath, DSAuth {
                 delete mintingTokens[_cruColIDs[i]];
         }
 
-        for (uint i = 0; i < _colIDs.length; i++) {
-            require(_colIDs[i] != address(0), "_SetSection: 0 address not allow.");
-            require(_weight[i] > 0, "_SetSection: cw not allow.");
+        for (uint i = 0; i < _wrappedTokens.length; i++) {
+            require(mul(div(mul(_weight[i], factor), sum), sum) == mul(_weight[i], factor), "_SetSection: invalid weight");
 
             secList[_mintPosition].cw[i] = _weight[i];
-            secList[_mintPosition].colIDs[i] = _colIDs[i];
-            mintingTokens[_colIDs[i]] = true;
+            secList[_mintPosition].colIDs[i] = _wrappedTokens[i];
+            mintingTokens[_wrappedTokens[i]] = true;
+            wrappedTokens[_srcTokens[i]] = _wrappedTokens[i];
 
-            if (mintedTokens[_colIDs[i]])
+            if (mintedTokens[_wrappedTokens[i]])
                 continue;
 
-            mintedTokenList.push(_colIDs[i]);
-            mintedTokens[_colIDs[i]] = true;
+            mintedTokenList.push(_wrappedTokens[i]);
+            mintedTokens[_wrappedTokens[i]] = true;
         }
 
         mintPosition = _mintPosition;
         emit UpdateSection(secList[mintPosition].colIDs, secList[mintPosition].cw);
     }
 
-    function setSection(address[] memory _colIDs, uint[] memory _weight) public auth {
-        _setSection(_colIDs, _weight);
+    function setSection(address[] memory _wrappedTokens, uint[] memory _weight) public auth {
+        _setSection(_wrappedTokens, _weight);
     }
 
-    function setBackupSection(uint _position, address[] memory _colIDs, uint[] memory _weight) public auth {
-        require(_colIDs.length == _weight.length, "SetBackupSection: data not allow.");
+    function setBackupSection(uint _position, address[] memory _wrappedTokens, uint[] memory _weight) public auth {
+        require(_wrappedTokens.length == _weight.length, "SetBackupSection: data not allow.");
         require(_position < mintPosition, "SetBackupSection: update mint section first.");
 
         uint _backupIdx = secList[_position].backupIdx;
@@ -178,15 +195,15 @@ contract DFStore is DSMath, DSAuth {
             backupSeed = add(_backupIdx, 1);
         }
 
-        secListBackup[_backupIdx] = Section(0, 0, _position, new address[](_colIDs.length), new uint[](_weight.length));
+        secListBackup[_backupIdx] = Section(0, 0, _position, new address[](_wrappedTokens.length), new uint[](_weight.length));
 
-        for (uint i = 0; i < _colIDs.length; i++) {
-            require(_colIDs[i] != address(0), "SetBackupSection: token contract address invalid");
+        for (uint i = 0; i < _wrappedTokens.length; i++) {
+            require(_wrappedTokens[i] != address(0), "SetBackupSection: token contract address invalid");
             require(_weight[i] > 0, "SetBackupSection: weight must greater than 0");
 
             secListBackup[_backupIdx].cw[i] = _weight[i];
-            secListBackup[_backupIdx].colIDs[i] = _colIDs[i];
-            mintedTokens[_colIDs[i]] = true;
+            secListBackup[_backupIdx].colIDs[i] = _wrappedTokens[i];
+            mintedTokens[_wrappedTokens[i]] = true;
         }
     }
 
@@ -316,7 +333,24 @@ contract DFStore is DSMath, DSAuth {
     function setTokenMedian(address _tokenID, address _median) public auth {
         TokenMedian[_tokenID] = _median;
     }
+
     function getTokenMedian(address _tokenID) public view returns (address) {
         return TokenMedian[_tokenID];
+    }
+
+    function setTotalCol(uint _amount) public auth {
+        totalCol = _amount;
+    }
+
+    function getTotalCol() public view returns (uint) {
+        return totalCol;
+    }
+
+    function setWrappedToken(address _srcToken, address _wrappedToken) public auth {
+        wrappedTokens[_srcToken] = _wrappedToken;
+    }
+
+    function getWrappedToken(address _srcToken) public view returns (address) {
+        return  wrappedTokens[_srcToken];
     }
 }
