@@ -1,8 +1,12 @@
 USDx Release Notes.
 
+# 2019.06.24
+1). Do not track ERC20 function return value.
+2). Remove deprecated contracts.
+
 # 2019.06.19
 1). Split DFProtocol.sol and DFEngine.sol, add DFProtocolView.sol and DFSetting.sol for the deploying gas sake;
-2). To solve the problem of decimal of collateral tokens, add wrapper token, i.e. x-tokens (e.g. DAI -> xDAI ) for each token. Uses wrappedTokens (DSWrappedToken.sol) instead of collateral tokens in ‘section’. Do wrapping when deposit collateral tokens, and do unwrapping when destroy USDx. Colllateral tokens lock in contract DFPool, and x-tokens store in contract DFPool(pending minting) and DFCollateral(minted);
+2). To solve the problem of decimal of collateral tokens, add wrapper token, i.e. x-tokens (e.g. DAI -> xDAI ) for each token. Uses wrappedTokens (DSWrappedToken.sol) instead of collateral tokens in ‘section�? Do wrapping when deposit collateral tokens, and do unwrapping when destroy USDx. Colllateral tokens lock in contract DFPool, and x-tokens store in contract DFPool(pending minting) and DFCollateral(minted);
 3). DSMath.sol: add pow();
 4). DFEngine.sol: remove claimAmount function (deprecated);
 5). DFEngine.sol(line 173): Fix minimal destroy amount checking;

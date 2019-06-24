@@ -194,4 +194,24 @@ contract DFProtocolView is DSMath {
 
 		return (_srcTokens, _srcBalance);
     }
+
+    function calcMaxMinting() public view returns(uint) {
+        address[] memory _tokens;
+        uint[] memory _mintCW;
+        (, , , _tokens, _mintCW) = dfStore.getSectionData(dfStore.getMintPosition());
+
+        uint _sumMintCW;
+        uint _step = uint(-1);
+        address _depositor = msg.sender;
+        address _srcToken;
+        uint _balance;
+        for (uint i = 0; i < _tokens.length; i++) {
+            _sumMintCW = add(_sumMintCW, _mintCW[i]);
+            _srcToken = IDSWrappedToken(_tokens[i]).getSrcERC20();
+            _balance = IDSWrappedToken(_srcToken).balanceOf(_depositor);
+            _step = min(div(IDSWrappedToken(_tokens[i]).changeByMultiple(_balance), _mintCW[i]), _step);
+        }
+
+        return mul(_step, _sumMintCW);
+    }
 }

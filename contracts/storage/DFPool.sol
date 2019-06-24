@@ -1,10 +1,11 @@
 pragma solidity ^0.5.2;
 
 import '../token/interfaces/IERC20Token.sol';
+import '../utility/DSMath.sol';
 import '../utility/DSAuth.sol';
 import '../utility/Utils.sol';
 
-contract DFPool is DSAuth, Utils {
+contract DFPool is DSMath, DSAuth, Utils {
 
     address dfcol;
 
@@ -17,7 +18,9 @@ contract DFPool is DSAuth, Utils {
         auth
         returns (bool)
     {
-        assert(IERC20Token(_tokenID).transferFrom(_from, address(this), _amount));
+        uint _balance = IERC20Token(_tokenID).balanceOf(address(this));
+        IERC20Token(_tokenID).transferFrom(_from, address(this), _amount);
+        assert(sub(IERC20Token(_tokenID).balanceOf(address(this)), _balance) == _amount);
         return true;
     }
 
@@ -27,7 +30,9 @@ contract DFPool is DSAuth, Utils {
         auth
         returns (bool)
     {
-        assert(IERC20Token(_tokenID).transfer(_to, _amount));
+        uint _balance = IERC20Token(_tokenID).balanceOf(_to);
+        IERC20Token(_tokenID).transfer(_to, _amount);
+        assert(sub(IERC20Token(_tokenID).balanceOf(_to), _balance) == _amount);
         return true;
     }
 
@@ -37,7 +42,9 @@ contract DFPool is DSAuth, Utils {
         returns (bool)
     {
         require(dfcol != address(0), "TransferToCol: collateral address empty.");
-        assert(IERC20Token(_tokenID).transfer(dfcol, _amount));
+        uint _balance = IERC20Token(_tokenID).balanceOf(dfcol);
+        IERC20Token(_tokenID).transfer(dfcol, _amount);
+        assert(sub(IERC20Token(_tokenID).balanceOf(dfcol), _balance) == _amount);
         return true;
     }
 
@@ -47,7 +54,9 @@ contract DFPool is DSAuth, Utils {
         returns (bool)
     {
         require(dfcol != address(0), "TransferFromSenderToCol: collateral address empty.");
+        uint _balance = IERC20Token(_tokenID).balanceOf(dfcol);
         assert(IERC20Token(_tokenID).transferFrom(_from, dfcol, _amount));
+        assert(sub(IERC20Token(_tokenID).balanceOf(dfcol), _balance) == _amount);
         return true;
     }
 
