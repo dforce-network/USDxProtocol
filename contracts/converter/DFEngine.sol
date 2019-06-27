@@ -59,12 +59,12 @@ contract DFEngine is DSMath, DSAuth {
     }
 
     function deposit(address _depositor, address _srcToken, uint _feeTokenIdx, uint _srcAmount) public auth returns (uint) {
-        require(_srcAmount > 0, "Deposit: amount not allow.");
         address _tokenID = dfStore.getWrappedToken(_srcToken);
-        require(dfStore.getMintingToken(_tokenID), "Deposit: asset not allow.");
+        require(dfStore.getMintingToken(_tokenID), "Deposit: asset is not allowed.");
 
-        dfPool.transferFromSender(_srcToken, _depositor, _srcAmount);
         uint _amount = IDSWrappedToken(_tokenID).wrap(address(dfPool), _srcAmount);
+        require(_amount > 0, "Deposit: amount is invalid.");
+        dfPool.transferFromSender(_srcToken, _depositor, IDSWrappedToken(_tokenID).reverseByMultiple(_amount));
         _unifiedCommission(ProcessType.CT_DEPOSIT, _feeTokenIdx, _depositor, _amount);
 
         address[] memory _tokens;
@@ -118,10 +118,9 @@ contract DFEngine is DSMath, DSAuth {
     }
 
     function withdraw(address _depositor, address _srcToken, uint _feeTokenIdx, uint _srcAmount) public auth returns (uint) {
-        require(_srcAmount > 0, "Withdraw: not enough balance.");
-
         address _tokenID = dfStore.getWrappedToken(_srcToken);
         uint _amount = IDSWrappedToken(_tokenID).changeByMultiple(_srcAmount);
+        require(_amount > 0, "Withdraw: amount is invalid.");
 
         uint _depositorBalance = dfStore.getDepositorBalance(_depositor, _tokenID);
         uint _tokenBalance = dfStore.getTokenBalance(_tokenID);

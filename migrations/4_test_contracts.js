@@ -10,7 +10,7 @@ const DF_Addr = "0x4AF82b7C2F049574C9fc742A896DAbEA379b7d51";
 
 module.exports = async function (deployer, network, accounts) {
 
-    if (network == 'development')
+    if (network == 'development' || network == 'production')
         return;
 
     let contractProtocol = await Protocol.deployed();
@@ -19,9 +19,9 @@ module.exports = async function (deployer, network, accounts) {
     let contractUSDx = await USDx.deployed();
     
     const daiAddr = "0xf494e07dfdbce883bf699cedf818fde2fa432db4";
-    const paxAddr = "0x561b11000e95ac053eccec5bcefdc37e16c2491b";
-    const tusdAddr = "0x25470030aa105bca679752e5c5e482c295de2b68";
-    const usdcAddr = "0xbc34e50f589e389c507e0213501114bd2e70b1d7";
+    const paxAddr = "0x2901ea287e0299d595783faedae3ca0ab2bc4e53";
+    const tusdAddr = "0xfb010ff66700b6ace85fa68e2d98ab754b6f7af4";
+    const usdcAddr = "0x481f8ff13489695b2e1c81691a95a81f8cb96e32";
 
     let contractDAI = await Collaterals.at(daiAddr);
     let contractPAX = await Collaterals.at(paxAddr);

@@ -49,7 +49,7 @@ contract DFStore is DSMath, DSAuth {
     mapping(uint => uint) public FeeRate;
     mapping(uint => address) public FeeToken;
     mapping(address => address) public TokenMedian;
-    mapping(address => uint) public colsBalance;
+    mapping(address => uint) public poolBalance;
     mapping(address => uint) public resUSDXBalance;
     mapping(address => mapping (address => uint)) public depositorsBalance;
 
@@ -291,11 +291,11 @@ contract DFStore is DSMath, DSAuth {
     }
 
     function getTokenBalance(address _tokenID) public view returns (uint) {
-        return colsBalance[_tokenID];
+        return poolBalance[_tokenID];
     }
 
     function setTokenBalance(address _tokenID, uint _amount) public auth {
-        colsBalance[_tokenID] = _amount;
+        poolBalance[_tokenID] = _amount;
     }
 
     function getResUSDXBalance(address _tokenID) public view returns (uint) {
