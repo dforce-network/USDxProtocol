@@ -1,5 +1,9 @@
 USDx Release Notes.
 
+# 2019.06.27
+1). Truncate amount with decimal larger than 18.
+2). Better naming.
+
 # 2019.06.24
 1). Do not track ERC20 function return value.
 2). Remove deprecated contracts.
