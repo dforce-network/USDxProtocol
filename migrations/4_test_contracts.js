@@ -6,7 +6,7 @@ const Engine = artifacts.require('DFEngine.sol');
 const USDx = artifacts.require('DSToken.sol');
 const Collaterals = artifacts.require('Collaterals_t.sol');
 const DF = artifacts.require('DSToken.sol');
-const DF_Addr = "0x4AF82b7C2F049574C9fc742A896DAbEA379b7d51";
+const DF_Addr = "0xb7dd4a376d3c3680a939f6ec2c5b5a737a60710a";
 
 module.exports = async function (deployer, network, accounts) {
 
@@ -17,11 +17,11 @@ module.exports = async function (deployer, network, accounts) {
     let contractPool = await Pool.deployed();
     let contarctEngine = await Engine.deployed();
     let contractUSDx = await USDx.deployed();
-    
-    const daiAddr = "0xf494e07dfdbce883bf699cedf818fde2fa432db4";
-    const paxAddr = "0x2901ea287e0299d595783faedae3ca0ab2bc4e53";
-    const tusdAddr = "0xfb010ff66700b6ace85fa68e2d98ab754b6f7af4";
-    const usdcAddr = "0x481f8ff13489695b2e1c81691a95a81f8cb96e32";
+
+    const daiAddr = "0x506243424a778382f73bf6c24390d08fa9096092";
+    const paxAddr = "0xd414e78d5db39e90c704070943e067ffc0eb3d86";
+    const tusdAddr = "0xfeb2112e370091f25a2f96fb600484700a0ed603";
+    const usdcAddr = "0x71abccd90dbb09c37686e4d5026c2d9597d469cb";
 
     let contractDAI = await Collaterals.at(daiAddr);
     let contractPAX = await Collaterals.at(paxAddr);
@@ -89,8 +89,8 @@ module.exports = async function (deployer, network, accounts) {
     })
 
     let daiW = new BN(Number(0.01 * 10 ** 18).toLocaleString().replace(/,/g, ''));
-    let paxW = new BN(Number(0.03 * 10 ** 12).toLocaleString().replace(/,/g, ''));
-    let tusdW = new BN(Number(0.03 * 10 ** 8).toLocaleString().replace(/,/g, ''));
+    let paxW = new BN(Number(0.03 * 10 ** 13).toLocaleString().replace(/,/g, ''));
+    let tusdW = new BN(Number(0.03 * 10 ** 10).toLocaleString().replace(/,/g, ''));
     let usdcW = new BN(Number(0.03 * 10 ** 6).toLocaleString().replace(/,/g, ''));
 
     await contractProtocol.deposit.sendTransaction(daiAddr, new BN(0), daiW.mul(new BN(100))).then(result => {

@@ -1,5 +1,8 @@
 USDx Release Notes.
 
+#2019.07.01
+1). Improvements.
+
 # 2019.06.27
 1). Truncate amount with decimal larger than 18.
 2). Better naming.

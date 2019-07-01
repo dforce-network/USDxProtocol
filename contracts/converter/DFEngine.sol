@@ -232,7 +232,7 @@ contract DFEngine is DSMath, DSAuth {
             _sumMintCW = add(_sumMintCW, _mintCW[i]);
         }
         require(_sumMintCW != 0, "OneClickMinting: minting section is empty");
-        require(_amount % _sumMintCW == 0, "OneClickMinting: amount error");
+        require(_amount > 0 && _amount % _sumMintCW == 0, "OneClickMinting: amount error");
 
         _unifiedCommission(ProcessType.CT_DEPOSIT, _feeTokenIdx, _depositor, _amount);
 

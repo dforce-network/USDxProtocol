@@ -55,7 +55,7 @@ contract DFPool is DSMath, DSAuth, Utils {
     {
         require(dfcol != address(0), "TransferFromSenderToCol: collateral address empty.");
         uint _balance = IERC20Token(_tokenID).balanceOf(dfcol);
-        assert(IERC20Token(_tokenID).transferFrom(_from, dfcol, _amount));
+        IERC20Token(_tokenID).transferFrom(_from, dfcol, _amount);
         assert(sub(IERC20Token(_tokenID).balanceOf(dfcol), _balance) == _amount);
         return true;
     }

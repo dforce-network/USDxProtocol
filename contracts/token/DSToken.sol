@@ -33,6 +33,7 @@ contract DSAuth is DSAuthEvents {
         public
         onlyOwner
     {
+        require(owner_ != address(0), "invalid owner address");
         owner = owner_;
         emit LogSetOwner(owner);
     }
