@@ -213,7 +213,8 @@ contract DFStore is DSMath, DSAuth {
             "BurnSectionMoveon: burned not meet minted."
             );
 
-        burnPosition += 1;
+        burnPosition = add(burnPosition, 1);
+        assert(burnPosition <= mintPosition);
     }
 
     function getMintingToken(address _token) public view returns (bool) {

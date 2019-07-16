@@ -37,7 +37,7 @@ contract DSWrappedToken is DSToken(bytes32(0)) {
         uint _xAmount = _amount;
         uint _multiple = multiple;
 
-        if (flag && _multiple > 0)
+        if (flag)
             _xAmount = div(_amount, _multiple);
         else
             _xAmount = mul(_amount, _multiple);
@@ -49,7 +49,7 @@ contract DSWrappedToken is DSToken(bytes32(0)) {
         uint _amount = _xAmount;
         uint _multiple = multiple;
 
-        if (flag && _multiple > 0)
+        if (flag)
             _amount = mul(_xAmount, _multiple);
         else
             _amount = div(_xAmount, _multiple);

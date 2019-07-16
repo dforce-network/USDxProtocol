@@ -6,7 +6,7 @@ import '../storage/interfaces/IDFStore.sol';
 import '../storage/interfaces/IDFPool.sol';
 import '../oracle/interfaces/IMedianizer.sol';
 import '../utility/DSAuth.sol';
-import "../utility/DSMath.sol";
+import '../utility/DSMath.sol';
 
 contract DFEngine is DSMath, DSAuth {
     IDFStore public dfStore;
@@ -20,11 +20,6 @@ contract DFEngine is DSMath, DSAuth {
         CT_DESTROY,
         CT_CLAIM,
         CT_WITHDRAW
-    }
-
-    enum TokenType {
-        TT_DF,
-        TT_USDX
     }
 
     constructor (
@@ -201,6 +196,9 @@ contract DFEngine is DSMath, DSAuth {
                 dfStore.setSectionBurned(_minted);
                 dfStore.burnSectionMoveon();
             }
+
+            if (_burnedAmount == 0)
+                continue;
 
             for (uint i = 0; i < _tokens.length; i++) {
 

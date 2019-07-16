@@ -35,6 +35,12 @@ contract DSAuth is DSAuthEvents {
         emit LogSetOwner(msg.sender);
     }
 
+    // Warning: you should absolutely sure you want to give up authority!!!
+    function disableOwnership() public onlyOwner {
+        owner = address(0);
+        emit OwnerUpdate(msg.sender, owner);
+    }
+
     function transferOwnership(address newOwner_) public onlyOwner {
         require(newOwner_ != owner, "TransferOwnership: the same owner.");
         newOwner = newOwner_;
